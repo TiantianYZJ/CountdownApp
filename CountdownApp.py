@@ -1,3 +1,4 @@
+import math
 import random
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
@@ -657,10 +658,10 @@ class CountdownApp:
                 placeholder_frame = ttk.Frame(self.schedule_content, style="Black.TFrame", padding=0)
                 placeholder_frame.pack(fill=tk.X, pady=0, padx=0)
                 
-                time_label = ttk.Label(placeholder_frame, text="00:00-12:00", style="ClassTime.TLabel")
+                time_label = ttk.Label(placeholder_frame, text="00:00-12:00", style="ClassTime.Gray.TLabel")
                 time_label.pack(side=tk.LEFT, padx=0, pady=0)
                 
-                name_label = ttk.Label(placeholder_frame, text="暂无", style="ClassName.TLabel")
+                name_label = ttk.Label(placeholder_frame, text="暂无", style="ClassName.Gray.TLabel")
                 name_label.pack(side=tk.LEFT, pady=0, fill=tk.X, expand=True)
             else:
                 # 显示上午课程
@@ -707,10 +708,10 @@ class CountdownApp:
                 placeholder_frame = ttk.Frame(self.schedule_content, style="Black.TFrame", padding=0)
                 placeholder_frame.pack(fill=tk.X, pady=0, padx=0)
                 
-                time_label = ttk.Label(placeholder_frame, text="12:01-23:59", style="ClassTime.TLabel")
+                time_label = ttk.Label(placeholder_frame, text="12:01-23:59", style="ClassTime.Gray.TLabel")
                 time_label.pack(side=tk.LEFT, padx=0, pady=0)
                 
-                name_label = ttk.Label(placeholder_frame, text="暂无", style="ClassName.TLabel")
+                name_label = ttk.Label(placeholder_frame, text="暂无", style="ClassName.Gray.TLabel")
                 name_label.pack(side=tk.LEFT, pady=0, fill=tk.X, expand=True)
             else:
                 # 显示下午课程
@@ -926,6 +927,8 @@ class CountdownApp:
         """更新课程状态显示"""
         # 获取当前时间
         current_time = datetime.datetime.now()
+        # # 调试用：固定时间点
+        # current_time = current_time.replace(hour=21, minute=15)
         today_weekday = current_time.strftime('%A')
         
         # 初始化状态变量(全局变量)
@@ -1012,12 +1015,6 @@ class CountdownApp:
                                         child.configure(style="CurrentClassTime.TLabel")
                                     else:  # 课程名称标签
                                         child.configure(style="CurrentClassName.TLabel")
-                            # for child in class_frame.winfo_children():
-                            #     if isinstance(child, ttk.Label):
-                            #         if "Time" in str(child.cget("style")):
-                            #             child.configure(style="CurrentClassTime.TLabel")
-                            #         else:
-                            #             child.configure(style="CurrentClassName.TLabel")
                         break
                     
                     # 检查当前是否在下一节课之前
@@ -1082,7 +1079,7 @@ class CountdownApp:
                         weather_info = f"当前{weather_text}，{temperature}°C"
             except Exception as e:
                 # 天气获取失败不影响其他功能
-                weather_info = "天气获取中..."
+                weather_info = "今天天气不错哦"
             
             # 2. 检查特殊日期
             special_dates = [
@@ -1442,7 +1439,27 @@ class CountdownApp:
 
             # 更新小窗口显示，添加下节课信息
             if hasattr(self, 'current_next_class'):
-                mini_text = f"{current_time} · 下节「{self.current_next_class}」"
+                if self.current_next_class == "明日课程":
+                    mini_text = f"{current_time} · 放学啦！"
+                elif self.current_next_class == "无":
+                    # 计算距离放学时间
+                    today_weekday = datetime.datetime.now().strftime('%A')
+                    current_time_standard = datetime.datetime.now()
+                    # 调试用：指定时间点
+                    current_time_standard = current_time_standard.replace(hour=21, minute=29)
+                    if today_weekday in self.schedule_data['school_days']:
+                        today_classes = self.schedule_data['school_days'][today_weekday]
+                        time_slots_map = {slot['slot_id']: slot for slot in self.schedule_data['time_slots']}
+                        if today_classes:
+                            last_class_slot = today_classes[-1]['slot_id']
+                            if last_class_slot in time_slots_map:
+                                last_class_end = time_slots_map[last_class_slot]['end_time']
+                                last_end_hour, last_end_minute = map(int, last_class_end.split(':'))
+                                last_end_time = current_time_standard.replace(hour=last_end_hour, minute=last_end_minute, second=0, microsecond=0)
+                                time_until_end = math.ceil((last_end_time - current_time_standard).total_seconds() / 60)
+                    mini_text = f"{current_time} · {time_until_end}分钟后放学"
+                else:
+                    mini_text = f"{current_time} · 下节「{self.current_next_class}」"
             else:
                 mini_text = current_time
 
@@ -2023,7 +2040,7 @@ class CountdownApp:
         
     def show_about(self):
         """显示关于信息"""
-        about_message = "桌面时钟倒计时组件\n版本 1.5.0-251221\n开发：TiantianYZJ\n\n感谢：\n- @zhy_0928_fc (功能建议)\n- 一言API (https://hitokoto.cn/)\n- OIAPI (https://oiapi.net/)\n\n本软件遵循MIT开源协议。"
+        about_message = "桌面时钟倒计时组件\n版本 1.6.0-260110\n开发：TiantianYZJ（yzjtiantian@126.com）\n\n感谢：\n- @zhy_0928_fc (功能建议)\n- 一言API (https://hitokoto.cn/)\n- OIAPI (https://oiapi.net/)\n- 心知天气API (https://www.seniverse.com/)\n\n本软件遵循MIT开源协议。"
         messagebox.showinfo("关于", about_message)
 
     def quit(self):
