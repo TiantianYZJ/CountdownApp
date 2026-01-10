@@ -1,3 +1,4 @@
+import random
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import datetime
@@ -24,13 +25,10 @@ class CountdownApp:
         # 设置窗口背景为黑色且透明度
         self.root.configure(bg='black')
         self.root.attributes('-alpha', 0.65)
-        self.root.geometry("950x600")
+        self.root.geometry("950x610")
 
         # 设置窗口最小尺寸
         self.root.minsize(550, 200)
-        
-        # 始终在壁纸层上方、操作层下方
-        # self.root.attributes('-topmost', False)
         
         # 初始化数据库并加载设置
         self.init_database()
@@ -93,7 +91,7 @@ class CountdownApp:
         
         # 创建分隔线
         schedule_separator = ttk.Separator(self.right_frame, orient='horizontal', style="Separator.TSeparator")
-        schedule_separator.pack(fill='x', pady=(0, 8))
+        schedule_separator.pack(fill='x', pady=(0, 5))
         
         # 创建课程表内容框架（Canvas）
         self.schedule_canvas = tk.Canvas(self.right_frame, bg='black', highlightthickness=0)
@@ -144,6 +142,9 @@ class CountdownApp:
         # 加载课程表
         self.load_schedule()
 
+        # 初始化通知器
+        self.update_status_text()
+
         # 添加小窗口位置跟踪变量
         self.mini_window_position_set = False
         
@@ -173,15 +174,15 @@ class CountdownApp:
         height = self.root.winfo_height()
         
         # 计算基础字体大小（基于窗口宽度和高度的平均值）
-        base_font_size = min(max(int((width + height) / 120), 12), 20)
-        # print(f"Updating font sizes with (width + height):{width + height}, base_font_size: {base_font_size}")
+        base_font_size = min(max(int((height) / 47), 12), 20)
+        # print(f"Updating font sizes with height:{height}, base_font_size: {base_font_size}")
         
         # 更新所有样式的字体大小
         self.setup_styles(base_font_size)
         
         # 更新名言标签的wraplength以适应新的窗口宽度
         if self.quote_label:
-            self.quote_label.config(wraplength=width // 2 - 40)
+            self.quote_label.config(wraplength=width // 2 - 50)
 
     def setup_styles(self, base_font_size):
         """设置ttk样式"""
@@ -191,8 +192,8 @@ class CountdownApp:
         if base_font_size == 0:
             width = self.root.winfo_width()
             height = self.root.winfo_height()
-            base_font_size = min(max(int((width + height) / 120), 12), 20)
-            # print(f"Calculated (width + height):{width + height}, base_font_size: {base_font_size}")
+            base_font_size = min(max(int((height) / 47), 12), 20)
+            # print(f"Calculated height:{height}, base_font_size: {base_font_size}")
     
         # 黑色背景框架
         style.configure("Black.TFrame", background="black")
@@ -202,7 +203,7 @@ class CountdownApp:
         # 时间标签
         # style.configure("Time.TLabel", background="black", foreground="white")
         style.configure("Time.TLabel", background="black", foreground="white", 
-                   font=('Microsoft YaHei UI', int(base_font_size * 7), 'bold'))
+                   font=('Tahoma', int(base_font_size * 7), 'bold'))
         
         # 日期标签
         # style.configure("Date.TLabel", background="black", foreground="white")
@@ -233,52 +234,46 @@ class CountdownApp:
         # 名言标签
         # style.configure("Quote.TLabel", background="black", foreground="#FFFFFF")
         style.configure("Quote.TLabel", background="black", foreground="#FFFFFF",
-                   font=('Microsoft YaHei UI', int(base_font_size * 1.5), 'italic'))
+                   font=('Segoe UI', int(base_font_size * 1.8), 'italic'))
     
         # 名言来源标签
         # style.configure("Source.TLabel", background="black", foreground="#CCCCCC")
         style.configure("Source.TLabel", background="black", foreground="#CCCCCC",
-                   font=('Microsoft YaHei UI', int(base_font_size * 1.2)))
+                   font=('Segoe UI', int(base_font_size * 1.2)))
     
         # 标题标签
         # style.configure("Title.TLabel", background="black", foreground="white")
         style.configure("Title.TLabel", background="black", foreground="white",
-                   font=('Microsoft YaHei UI', int(base_font_size * 1.7), 'bold'))
+                   font=('YouYuan', int(base_font_size * 1.7), 'bold'))
         
         # 分隔线
         style.configure("Separator.TSeparator", background="#333333")
         
         # 课程时间标签
         style.configure("ClassTime.TLabel", background="black", foreground="#98FB98", 
-                        font=('Microsoft YaHei UI', int(base_font_size + 2)), padding=0)
+                        font=('Consolas', int(base_font_size + 2)), padding=0)
         style.configure("ClassName.TLabel", background="black", foreground="white", 
-                        font=('Microsoft YaHei UI', int(base_font_size + 2), 'bold'), padding=(100, 0))
+                        font=('YouYuan', int(base_font_size + 2), 'bold'), padding=(100, 0))
         
         # 当前课程时间标签
         style.configure("CurrentClassTime.TLabel", background="#DDE3D2", foreground="#262626", 
-                        font=('Microsoft YaHei UI', int(base_font_size + 2)), padding=0)
+                        font=('Consolas', int(base_font_size + 2)), padding=0)
         style.configure("CurrentClassName.TLabel", background="#DDE3D2", foreground="#262626", 
-                        font=('Microsoft YaHei UI', int(base_font_size + 2), 'bold'), padding=(100, 0))
-        
-        # 交替课程时间标签
-        style.configure("ClassTime2.TLabel", background="#202020", foreground="#98FB98", 
-                        font=('Microsoft YaHei UI', int(base_font_size + 2)), padding=0)
-        style.configure("ClassName2.TLabel", background="#202020", foreground="white", 
-                        font=('Microsoft YaHei UI', int(base_font_size + 2), 'bold'), padding=(100, 0))
+                        font=('YouYuan', int(base_font_size + 2), 'bold'), padding=(100, 0))
         
         # 已结束课程标签
-        style.configure("ClassName.Gray.TLabel", background="black", foreground="#888888", 
-                        font=('Microsoft YaHei UI', int(base_font_size + 2), 'bold'), padding=(100, 0))
         style.configure("ClassTime.Gray.TLabel", background="black", foreground="#666666", 
-                        font=('Microsoft YaHei UI', int(base_font_size + 2)), padding=0)
+                        font=('Consolas', int(base_font_size + 2)), padding=0)
+        style.configure("ClassName.Gray.TLabel", background="black", foreground="#888888", 
+                        font=('YouYuan', int(base_font_size + 2), 'bold'), padding=(100, 0))
         
         # 状态标签
         style.configure("Status.TLabel", background="#1a1a1a", foreground="#FFFF00", 
-                        font=('Microsoft YaHei UI', int(base_font_size + 3)), padding=0)
-        style.configure("Status.Orange.TLabel", background="#1a1a1a", foreground="#FFA500", 
-                        font=('Microsoft YaHei UI', int(base_font_size + 3)), padding=0)
-        style.configure("Status.Green.TLabel", background="#1a1a1a", foreground="#32CD32", 
-                        font=('Microsoft YaHei UI', int(base_font_size + 3)), padding=0)
+                        font=('Microsoft YaHei UI', int(base_font_size + 2)), padding=(1, 1, 1, 1))
+        # style.configure("Status.Orange.TLabel", background="#1a1a1a", foreground="#FFA500", 
+        #                 font=('YouYuan', int(base_font_size + 3)), padding=0)
+        # style.configure("Status.Green.TLabel", background="#1a1a1a", foreground="#32CD32", 
+        #                 font=('YouYuan', int(base_font_size + 3)), padding=0)
         
         # 设置窗口专用样式
         style.configure("TButton", foreground="black", 
@@ -357,68 +352,6 @@ class CountdownApp:
         x = self.mini_window.winfo_x() + deltax
         y = self.mini_window.winfo_y() + deltay
         self.mini_window.geometry(f"+{x}+{y}")
-
-    # 已弃用
-    def is_window_visible(self):
-        """检查主窗口是否被其他窗口遮挡"""
-        try:
-            # 获取主窗口句柄
-            hwnd = self.root.winfo_id()
-            
-            # 检查主窗口是否可见
-            if not win32gui.IsWindowVisible(hwnd):
-                return False
-            
-            # 获取主窗口位置和大小
-            main_rect = win32gui.GetWindowRect(hwnd)
-            main_left, main_top, main_right, main_bottom = main_rect
-            main_width = main_right - main_left
-            main_height = main_bottom - main_top
-            
-            # 如果主窗口太小，最小化或隐藏
-            if main_width < 10 or main_height < 10:
-                return False
-            
-            # 获取当前前台窗口
-            foreground_hwnd = win32gui.GetForegroundWindow()
-            
-            # 如果前台窗口不是主窗口，检查前台窗口是否遮挡主窗口
-            if foreground_hwnd != hwnd:
-                # 获取前台窗口的位置和大小
-                fg_rect = win32gui.GetWindowRect(foreground_hwnd)
-                fg_left, fg_top, fg_right, fg_bottom = fg_rect
-                
-                # 计算重叠区域
-                overlap_left = max(main_left, fg_left)
-                overlap_top = max(main_top, fg_top)
-                overlap_right = min(main_right, fg_right)
-                overlap_bottom = min(main_bottom, fg_bottom)
-                
-                # 计算重叠面积
-                overlap_width = max(0, overlap_right - overlap_left)
-                overlap_height = max(0, overlap_bottom - overlap_top)
-                overlap_area = overlap_width * overlap_height
-                
-                # 计算主窗口面积
-                main_area = main_width * main_height
-                
-                # 如果重叠面积超过主窗口面积的70%，认为主窗口被严重遮挡
-                if main_area > 0 and overlap_area / main_area > 0.7:
-                    return False
-                
-                # 检查前台窗口是否接近全屏
-                screen_width = self.root.winfo_screenwidth()
-                screen_height = self.root.winfo_screenheight()
-                fg_width = fg_right - fg_left
-                fg_height = fg_bottom - fg_top
-                
-                if (fg_width >= screen_width * 0.95 and fg_height >= screen_height * 0.95):
-                    return False
-            
-            return True
-        except Exception as e:
-            # self.show_windows_notification("检查窗口可见性时出错", str(e))
-            return True
 
     # 获取AppData目录
     def get_appdata_path(self):
@@ -633,7 +566,7 @@ class CountdownApp:
         mini_clock_frame.pack(fill=tk.X, pady=8, anchor="w")
         
         mini_clock_var = tk.BooleanVar(value=self.show_mini_on_fullscreen)
-        mini_clock_checkbox = ttk.Checkbutton(display_frame, text="显示迷你时钟", variable=mini_clock_var)
+        mini_clock_checkbox = ttk.Checkbutton(mini_clock_frame, text="显示迷你时钟", variable=mini_clock_var)
         mini_clock_checkbox.pack(anchor="w", pady=4)
         
         # ===== 通知设置分组 =====
@@ -649,7 +582,7 @@ class CountdownApp:
         manage_notifications_frame = ttk.Frame(notify_frame)
         manage_notifications_frame.pack(fill=tk.X, pady=4, anchor="w")
         
-        manage_notifications_button = ttk.Button(manage_notifications_frame, text="管理通知", 
+        manage_notifications_button = ttk.Button(notify_frame, text="管理通知", 
                                                command=self.manage_notifications, width=10)
         manage_notifications_button.pack(side=tk.LEFT, padx=5)
         
@@ -660,9 +593,13 @@ class CountdownApp:
         def save_settings_action():
             try:
                 exam_year = int(year_var.get())
-                self.save_settings(exam_year, notification_var.get(), mini_clock_var.get())
-                self.show_windows_notification("搞定！", "设置项更改已保存")
-                settings_window.destroy()
+                # 检查年份范围是否在2026-2048之间
+                if exam_year < 2026 or exam_year > 2048:
+                    self.show_windows_notification("再玩就玩坏了", "中考年份必须在2026-2048之间")
+                else:
+                    self.save_settings(exam_year, notification_var.get(), mini_clock_var.get())
+                    self.show_windows_notification("搞定！", "设置项更改已保存")
+                    settings_window.destroy()
             except ValueError:
                 self.show_windows_notification("嗯？", "请输入有效的年份")
         save_button = ttk.Button(button_frame, text="保存", command=save_settings_action, width=10)
@@ -737,8 +674,7 @@ class CountdownApp:
                         start_time = time_slot['start_time']
                         end_time = time_slot['end_time']
                         
-                        # 交替背景色提高可读性，使用对比色
-                        style_name = "ClassTime.TLabel" if i % 2 == 0 else "ClassTime2.TLabel"
+                        style_name = "ClassTime.TLabel"
                         frame_style = "Black.TFrame"
                         
                         # 创建课程条目框架，使用ttk样式
@@ -754,7 +690,7 @@ class CountdownApp:
                         time_label.pack(side=tk.LEFT, padx=0, pady=0)
                         
                         # 创建课程名称标签，使用ttk样式
-                        name_style = "ClassName.TLabel" if i % 2 == 0 else "ClassName2.TLabel"
+                        name_style = "ClassName.TLabel"
                         name_label = ttk.Label(class_frame, text=class_name, 
                                             style=name_style)
                         name_label.pack(side=tk.LEFT, pady=0, fill=tk.X, expand=True)
@@ -763,7 +699,7 @@ class CountdownApp:
             if morning_classes or afternoon_classes:
                 lunch_separator = ttk.Separator(self.schedule_content, orient='horizontal', 
                                             style="Separator.TSeparator")
-                lunch_separator.pack(fill='x', pady=8)
+                lunch_separator.pack(fill='x', pady=5)
             
             # 检查下午是否有课程，如果没有则添加占位符
             if not afternoon_classes:
@@ -788,8 +724,7 @@ class CountdownApp:
                         start_time = time_slot['start_time']
                         end_time = time_slot['end_time']
                         
-                        # 交替背景色提高可读性，使用对比色
-                        style_name = "ClassTime.TLabel" if i % 2 == 0 else "ClassTime2.TLabel"
+                        style_name = "ClassTime.TLabel"
                         frame_style = "Black.TFrame"
                         
                         # 创建课程条目框架，使用ttk样式
@@ -805,7 +740,7 @@ class CountdownApp:
                         time_label.pack(side=tk.LEFT, padx=0, pady=0)
                         
                         # 创建课程名称标签，使用ttk样式
-                        name_style = "ClassName.TLabel" if i % 2 == 0 else "ClassName2.TLabel"
+                        name_style = "ClassName.TLabel"
                         name_label = ttk.Label(class_frame, text=class_name, 
                                             style=name_style)
                         name_label.pack(side=tk.LEFT, pady=0, fill=tk.X, expand=True)
@@ -813,20 +748,20 @@ class CountdownApp:
         # 在课程表内容容器下方添加分隔线
         schedule_bottom_separator = ttk.Separator(self.schedule_content, orient='horizontal', 
                                                 style="Separator.TSeparator")
-        schedule_bottom_separator.pack(fill='x', pady=8)
+        schedule_bottom_separator.pack(fill='x', pady=5)
         
         # 添加课程状态显示区域，使用ttk样式
         self.status_frame = ttk.Frame(self.schedule_content, style="Status.TLabel", padding=(10, 8))
-        self.status_frame.pack(fill=tk.X, pady=5, padx=5)
+        self.status_frame.pack(fill=tk.X, pady=5, padx=0)
         
         # 创建状态标签，使用ttk样式
         self.status_label = ttk.Label(self.status_frame, style="Status.TLabel", 
-                                    justify='left')
+                                    justify='left', wraplength=400)
         self.status_label.pack(fill=tk.X)
 
         # 创建底部按钮容器
         buttons_container = ttk.Frame(self.schedule_content, style="Black.TFrame")
-        buttons_container.pack(fill=tk.X, pady=10, padx=5)
+        buttons_container.pack(fill=tk.X, pady=5, padx=0)
 
         # 补课设置按钮
         self.makeup_class_button = ttk.Button(buttons_container, text="补课设置", 
@@ -966,6 +901,7 @@ class CountdownApp:
             self.display_todays_schedule()
             self.update_class_status()
             
+            
             # 显示通知
             self.show_windows_notification("设置成功", f"今天已改为上{selected_weekday_zh}的课程")
         
@@ -992,9 +928,13 @@ class CountdownApp:
         current_time = datetime.datetime.now()
         today_weekday = current_time.strftime('%A')
         
-        # 初始化状态变量
+        # 初始化状态变量(全局变量)
+        global current_status
         current_status = "课间"
+
+        global next_class
         next_class = "无"
+
         current_slot_id = None
         
         # 重置所有课程条目的样式 - 使用ttk样式机制
@@ -1072,6 +1012,12 @@ class CountdownApp:
                                         child.configure(style="CurrentClassTime.TLabel")
                                     else:  # 课程名称标签
                                         child.configure(style="CurrentClassName.TLabel")
+                            # for child in class_frame.winfo_children():
+                            #     if isinstance(child, ttk.Label):
+                            #         if "Time" in str(child.cget("style")):
+                            #             child.configure(style="CurrentClassTime.TLabel")
+                            #         else:
+                            #             child.configure(style="CurrentClassName.TLabel")
                         break
                     
                     # 检查当前是否在下一节课之前
@@ -1106,56 +1052,237 @@ class CountdownApp:
 
             # 更新课程标题，添加进度信息
             self.schedule_title.configure(text=f"今日课程（{completed_classes}/{total_classes}）")
-        
-        # 高亮当前课程 - 使用ttk样式
-        if current_slot_id and hasattr(self, 'class_frames') and current_slot_id in self.class_frames:
-            # 重置所有课程框架的样式
-            for slot_id, class_frame in self.class_frames.items():
-                # 恢复默认样式
-                if slot_id % 2 == 0:
-                    class_frame.configure(style="Black.TFrame")
-                else:
-                    class_frame.configure(style="Black.TFrame")
-                
-                # 恢复框架内所有标签的样式
-                for child in class_frame.winfo_children():
-                    if isinstance(child, ttk.Label):
-                        if "Time" in str(child.cget("style")):
-                            child.configure(style="ClassTime.TLabel" if slot_id % 2 == 0 else "ClassTime2.TLabel")
-                        else:
-                            child.configure(style="ClassName.TLabel" if slot_id % 2 == 0 else "ClassName2.TLabel")
-            
-            # 高亮当前课程
-            class_frame = self.class_frames[current_slot_id]
-            class_frame.configure(style="CurrentClassTime.TLabel")  # 使用高亮样式
-            
-            # 更新框架内所有标签的样式
-            for child in class_frame.winfo_children():
-                if isinstance(child, ttk.Label):
-                    if "Time" in str(child.cget("style")):
-                        child.configure(style="CurrentClassTime.TLabel")
-                    else:
-                        child.configure(style="CurrentClassName.TLabel")
-        
-        # 更新状态标签，使用ttk样式
+            self.current_next_class = next_class
+    
+    def update_status_text(self):
+        """更新状态标签文本，自动刷新"""
         if self.status_label is not None:
-            status_text = f"当前为「{current_status}」，下节为「{next_class}」"
-            
-            if current_status in ["午休", "放学"]:
-                # 特殊状态使用不同样式
-                if current_status == "午休":
-                    self.status_label.configure(style="Status.Orange.TLabel")
-                elif current_status == "放学":
-                    self.status_label.configure(style="Status.Green.TLabel")
-                else:
-                    self.status_label.configure(style="Status.TLabel")
+            # 根据时间添加问候语
+            now = datetime.datetime.now()
+            hour = now.hour
+            if 6 <= hour < 12:
+                greeting = "🌅 早上好"
+            elif 12 <= hour < 14:
+                greeting = "🍱 中午好"
+            elif 14 <= hour < 18:
+                greeting = "💪 下午好"
             else:
-                self.status_label.configure(style="Status.TLabel")
+                greeting = "🌙 晚上好"
             
+            # 1. 获取天气信息
+            weather_info = ""
+            try:
+                weather_response = requests.get("https://api.seniverse.com/v3/weather/now.json?key=SIHZWG1tgvaojxn_N&location=ip&language=zh-Hans&unit=c", timeout=3)
+                if weather_response.status_code == 200:
+                    weather_data = weather_response.json()
+                    if "results" in weather_data and weather_data["results"]:
+                        now = weather_data["results"][0]["now"]
+                        weather_text = now["text"]
+                        temperature = now["temperature"]
+                        weather_info = f"当前{weather_text}，{temperature}°C"
+            except Exception as e:
+                # 天气获取失败不影响其他功能
+                weather_info = "天气获取中..."
+            
+            # 2. 检查特殊日期
+            special_dates = [
+                {"name": "期末考试", "month": 1, "start_day": 22, "end_day": 23}
+                # 可以在这里添加更多特殊日期
+            ]
+            special_date_info = ""
+            today = datetime.datetime.now().date()
+            next_special_date = None
+            next_special_name = ""
+            
+            # 检查今天是否是特殊日
+            for date_info in special_dates:
+                start_date = datetime.date(today.year, date_info["month"], date_info["start_day"])
+                end_date = datetime.date(today.year, date_info["month"], date_info["end_day"])
+                if start_date <= today <= end_date:
+                    special_date_info = f"📅 今天{date_info['name']}"
+                    break
+                # 查找下一个特殊日
+                if not next_special_date or start_date > today and start_date < next_special_date:
+                    next_special_date = start_date
+                    next_special_name = date_info['name']
+            
+            # 如果当天没有特殊日，显示距离下一个特殊日的倒计时
+            if not special_date_info and next_special_date:
+                days_left = (next_special_date - today).days
+                special_date_info = f"📅 距离「{next_special_name}」还有 {days_left} 天"
+            
+            # 3. 计算学习统计
+            study_stats = ""
+            try:
+                today_weekday = datetime.datetime.now().strftime('%A')
+                if today_weekday in self.schedule_data['school_days']:
+                    today_classes = self.schedule_data['school_days'][today_weekday]
+                    time_slots_map = {slot['slot_id']: slot for slot in self.schedule_data['time_slots']}
+                    current_minutes = datetime.datetime.now().hour * 60 + datetime.datetime.now().minute
+                    
+                    # 计算总学习时间（分钟）
+                    total_study_minutes = 0
+                    current_class_progress = 0
+                    class_end_minutes = 0
+                    is_in_class = False
+                    
+                    for class_info in today_classes:
+                        slot_id = class_info['slot_id']
+                        if slot_id in time_slots_map:
+                            time_slot = time_slots_map[slot_id]
+                            start_hour, start_minute = map(int, time_slot['start_time'].split(':'))
+                            end_hour, end_minute = map(int, time_slot['end_time'].split(':'))
+                            
+                            start_minutes = start_hour * 60 + start_minute
+                            end_minutes = end_hour * 60 + end_minute
+                            class_duration = end_minutes - start_minutes
+                            
+                            # 已结束的课程
+                            if current_minutes >= end_minutes:
+                                total_study_minutes += class_duration
+                            # 正在上的课
+                            elif current_minutes >= start_minutes:
+                                total_study_minutes += (current_minutes - start_minutes)
+                                current_class_progress = current_minutes - start_minutes
+                                class_end_minutes = end_minutes
+                                is_in_class = True
+                                break
+                    
+                    # 转换为小时和分钟
+                    study_hours = total_study_minutes // 60
+                    study_mins = total_study_minutes % 60
+                    study_stats = f"⏱ 今日已学习 {study_hours}小时{study_mins}分钟"
+                    
+                    # 即将下课提醒
+                    if is_in_class:
+                        remaining_mins = class_end_minutes - current_minutes
+                        if 1 <= remaining_mins <= 10:
+                            study_stats += f"\n🔔 「{current_status}」还有{remaining_mins}分钟就要下课啦"
+            except Exception as e:
+                study_stats = "⏱ 学习统计中..."
+            
+            # 4. 预设鸡汤
+            motivational_quotes = [
+                "恭喜你抽到彩蛋了（概率1%）",
+                "今天也要元气满满哦！",
+                "学习使我快乐😊",
+                "加油，你是最棒的！",
+                "坚持就是胜利✊",
+                "每一份努力都不会白费",
+                "越努力，越幸运✨",
+                "相信自己，你可以的！",
+                "今天的努力，明天的收获",
+                "保持专注，成就辉煌",
+                "学习是最美的遇见",
+                "心有多大，舞台就有多大",
+                "成功属于坚持不懈的人",
+                "每天进步一点点，就是最大的成功",
+                "只要努力，就没有过不去的坎",
+                "梦想需要行动，而不是空想",
+                "时间是最公平的，你付出多少，就会得到多少",
+                "困难是暂时的，胜利是必然的",
+                "学习没有捷径，只有脚踏实地",
+                "态度决定一切，细节决定成败",
+                "不要害怕失败，失败是成功之母",
+                "现在的努力，是为了未来的自由",
+                "坚持就是胜利，努力总会有回报",
+                "每一次失败，都是成功的垫脚石",
+                "相信自己，你比想象中更强大",
+                "学习是一场马拉松，不是短跑",
+                "只要不放弃，就永远有希望",
+                "今天的汗水，明天的欢笑",
+                "知识改变命运，学习成就未来",
+                "机会总是留给有准备的人",
+                "没有做不到的事，只有不想做的人",
+                "努力吧，未来的你会感谢现在的自己",
+                "学习是投资，不是消费",
+                "成功需要耐心，需要坚持",
+                "每一次努力，都是在接近梦想",
+                "不要等待机会，要创造机会",
+                "学习使你成长，成长让你快乐",
+                "困难像弹簧，你强它就弱",
+                "相信努力，相信未来",
+                "今天的付出，明天的收获",
+                "坚持到底，就是胜利",
+                "学习是为了成为更好的自己",
+                "只要有梦想，就有动力",
+                "努力的人，运气都不会太差",
+                "成功没有秘诀，只有坚持和努力",
+                "每一步都算数，每一份努力都值得",
+                "不要怕慢，就怕站",
+                "学习是终身的事业",
+                "现在的辛苦，是为了将来的幸福",
+                "相信自己，你一定能行",
+                "坚持就是胜利，加油！",
+                "努力吧，少年！未来属于你",
+                "学习是一件快乐的事",
+                "只要努力，就会有奇迹",
+                "成功的路上，没有捷径",
+                "每一份努力，都会有回报",
+                "坚持到底，永不放弃",
+                "学习改变人生，知识成就梦想",
+                "相信自己，你是最棒的",
+                "今天的努力，明天的成功",
+                "努力吧，未来可期",
+                "学习是进步的阶梯",
+                "只要有信心，就能成功",
+                "每一次坚持，都是成长",
+                "努力的人，最美",
+                "学习是为了更好的生活",
+                "坚持就是胜利，成功就在前方",
+                "相信自己，你一定可以",
+                "今天的努力，明天的辉煌",
+                "努力吧，少年！",
+                "学习是一种享受",
+                "只要不放弃，就会成功",
+                "每一份努力，都不会被辜负",
+                "坚持到底，就是胜利",
+                "学习是为了实现梦想",
+                "相信自己，你能行",
+                "今天的汗水，明天的成功",
+                "努力吧，未来属于努力的人",
+                "学习是一种快乐",
+                "只要努力，就会有收获",
+                "每一次努力，都是在成长",
+                "坚持就是胜利，加油吧！",
+                "相信自己，你一定能成功",
+                "今天的努力，明天的果实",
+                "努力吧，少年！未来是你的",
+                "学习是一种成长",
+                "只要有梦想，就有希望",
+                "每一份努力，都值得尊重",
+                "坚持到底，永不言弃",
+                "学习是为了更好的自己",
+                "相信自己，你是最棒的！",
+                "今天的努力，明天的成就",
+                "努力吧，未来在等你",
+                "学习是一种幸福",
+                "只要努力，就会有回报",
+                "每一次坚持，都是胜利",
+                "坚持就是胜利，成功属于你",
+                "相信自己，你可以的！",
+                "今天的努力，明天的快乐",
+                "努力吧，少年！加油！",
+                "学习是一种财富",
+                "只要不放弃，就有希望",
+                "每一份努力，都在接近成功",
+                "坚持到底，就是成功",
+                "相信自己，你一定能做到",
+                "今天的努力，明天的美好",
+                "努力吧，未来属于你！"
+            ]
+            motivational_quote = random.choice(motivational_quotes)
+            
+            # 组合最终状态文本
+            status_text = f"""{greeting}！{weather_info}
+{special_date_info}
+{study_stats}
+>> {motivational_quote}"""
+            self.status_label.configure(style="Status.TLabel")
             self.status_label.configure(text=status_text)
         
-        # 将next_class保存为实例变量，供小窗口使用
-        self.current_next_class = next_class
+        # 自动刷新
+        self.root.after(10 * 1000, self.update_status_text)  # 10秒刷新一次
 
     def bind_mouse_events(self):
         """绑定鼠标事件"""
@@ -1239,13 +1366,6 @@ class CountdownApp:
         y = self.root.winfo_y() + deltay
         self.root.geometry(f"+{x}+{y}")
         
-    def set_window_behind_apps(self):
-        """设置窗口在应用程序下方但在壁纸上方"""
-        hwnd = self.root.winfo_id()
-        # 将窗口设置为工具窗口，使其在任务栏不显示，并调整层级
-        win32gui.SetWindowPos(hwnd, win32con.HWND_BOTTOM, 0, 0, 0, 0, 
-                             win32con.SWP_NOSIZE | win32con.SWP_NOMOVE | win32con.SWP_NOACTIVATE)
-    
     def set_window_position(self):
         """设置窗口到屏幕正中央"""
         # 等待窗口内容渲染完成
@@ -1305,8 +1425,6 @@ class CountdownApp:
         current_time = datetime.datetime.now().strftime("%H:%M:%S")
         self.time_label.config(text=current_time)
 
-        # 检查主窗口是否被遮挡，如果被遮挡且设置了显示迷你时钟，则显示小窗口
-        # if not self.is_window_visible() and self.show_mini_on_fullscreen:
         if self.show_mini_on_fullscreen:
             # 显示小窗口并更新时间
             if not self.mini_window.winfo_ismapped():
@@ -1388,20 +1506,21 @@ class CountdownApp:
         # 遍历所有通知
         for notification in self.notifications:
             # 检查通知是否启用
+            if not notification['enabled']:
                 continue
+                
+            # 检查是否到了通知时间（添加1分钟的容差，确保不会错过）
+            time_match = (current_hour == notification['hour'] and current_minute == notification['minute'])
             
-        # 检查是否到了通知时间（添加1分钟的容差，确保不会错过）
-        time_match = (current_hour == notification['hour'] and current_minute == notification['minute'])
-        
-        if time_match:
-            # 检查今天是否已经发送过该通知
-            notification_id = notification['id']
-            if notification_id not in self.last_notification_dates or self.last_notification_dates[notification_id] != current_date_str:
-                # 发送通知
-                print(f"发送通知: {notification['title']} - {notification['message']}")
-                self.show_windows_notification(notification['title'], notification['message'])
-                # 更新最后发送日期
-                self.last_notification_dates[notification_id] = current_date_str
+            if time_match:
+                # 检查今天是否已经发送过该通知
+                notification_id = notification['id']
+                if notification_id not in self.last_notification_dates or self.last_notification_dates[notification_id] != current_date_str:
+                    # 发送通知
+                    print(f"发送通知: {notification['title']} - {notification['message']}")
+                    self.show_windows_notification(notification['title'], notification['message'])
+                    # 更新最后发送日期
+                    self.last_notification_dates[notification_id] = current_date_str
                     
     def manage_notifications(self):
         """显示通知管理窗口"""
@@ -1573,49 +1692,73 @@ class CountdownApp:
             # 创建添加窗口
             add_window = tk.Toplevel(notification_window)
             add_window.title("添加通知")
-            add_window.geometry("350x300")
+            add_window.geometry("400x320")  # 增大窗口尺寸，提供更舒适的操作空间
             add_window.resizable(False, False)
             
             # 创建框架
-            frame = ttk.Frame(add_window, padding="15")
+            frame = ttk.Frame(add_window, padding="20")
             frame.pack(fill=tk.BOTH, expand=True)
             
+            # 配置网格布局的列权重，让第二列可以适当扩展
+            frame.columnconfigure(0, weight=0)
+            frame.columnconfigure(1, weight=1)
+            
             # 标题输入
-            ttk.Label(frame, text="标题:").grid(row=0, column=0, sticky=tk.W, pady=5)
+            ttk.Label(frame, text="标题:", font=('Microsoft YaHei UI', 10)).grid(
+                row=0, column=0, sticky=tk.W + tk.N, pady=(0, 10), padx=(0, 10))
             title_var = tk.StringVar()
-            ttk.Entry(frame, textvariable=title_var, width=30).grid(row=0, column=1, pady=5)
+            title_entry = ttk.Entry(frame, textvariable=title_var, width=35)
+            title_entry.grid(row=0, column=1, sticky=tk.E + tk.W, pady=(0, 10))
+            title_entry.focus_set()  # 自动聚焦到标题输入框
             
             # 消息输入
-            ttk.Label(frame, text="消息:").grid(row=1, column=0, sticky=tk.NW, pady=5)
-            text_widget = tk.Text(frame, height=5, width=25)
-            text_widget.grid(row=1, column=1, pady=5)
+            ttk.Label(frame, text="消息:", font=('Microsoft YaHei UI', 10)).grid(
+                row=1, column=0, sticky=tk.W + tk.N, pady=(0, 10), padx=(0, 10))
+            text_widget = tk.Text(frame, height=6, width=30, font=('Microsoft YaHei UI', 10))
+            text_widget.grid(row=1, column=1, sticky=tk.E + tk.W + tk.N + tk.S, pady=(0, 10))
+            
+            # 添加消息框的垂直滚动条
+            msg_scrollbar = ttk.Scrollbar(frame, orient="vertical", command=text_widget.yview)
+            msg_scrollbar.grid(row=1, column=2, sticky=tk.N + tk.S, pady=(0, 10))
+            text_widget.configure(yscrollcommand=msg_scrollbar.set)
             
             # 时间选择
-            ttk.Label(frame, text="时间:").grid(row=2, column=0, sticky=tk.W, pady=5)
+            ttk.Label(frame, text="时间:", font=('Microsoft YaHei UI', 10)).grid(
+                row=2, column=0, sticky=tk.W + tk.N, pady=(0, 15), padx=(0, 10))
             time_frame = ttk.Frame(frame)
-            time_frame.grid(row=2, column=1, pady=5, sticky=tk.W)
+            time_frame.grid(row=2, column=1, sticky=tk.W, pady=(0, 15))
             
-            hour_var = tk.StringVar(value=str(datetime.datetime.now().hour).zfill(2))
-            minute_var = tk.StringVar(value=str(datetime.datetime.now().minute).zfill(2))
+            # 获取当前时间
+            now = datetime.datetime.now()
             
-            hours = [str(i).zfill(2) for i in range(24)]
-            minutes = [str(i).zfill(2) for i in range(0, 60, 5)]
+            # 小时步进器
+            hour_var = tk.IntVar(value=now.hour)
+            hour_spinbox = ttk.Spinbox(time_frame, from_=0, to=23, textvariable=hour_var, 
+                                    width=4, font=('Microsoft YaHei UI', 10), justify=tk.CENTER)
+            hour_spinbox.pack(side=tk.LEFT, padx=2)
             
-            ttk.Combobox(time_frame, textvariable=hour_var, values=hours, width=5).pack(side=tk.LEFT, padx=2)
-            ttk.Label(time_frame, text=":").pack(side=tk.LEFT)
-            ttk.Combobox(time_frame, textvariable=minute_var, values=minutes, width=5).pack(side=tk.LEFT, padx=2)
+            # 分隔符
+            ttk.Label(time_frame, text=":", font=('Microsoft YaHei UI', 12, 'bold')).pack(side=tk.LEFT)
+            
+            # 分钟步进器
+            minute_var = tk.IntVar(value=now.minute)  # 按5分钟步进
+            minute_spinbox = ttk.Spinbox(time_frame, from_=0, to=59, textvariable=minute_var,
+                                        width=4, font=('Microsoft YaHei UI', 10), justify=tk.CENTER)
+            minute_spinbox.pack(side=tk.LEFT, padx=2)
             
             # 启用复选框
             enabled_var = tk.BooleanVar(value=True)
-            ttk.Checkbutton(frame, text="启用该通知", variable=enabled_var).grid(row=3, column=1, sticky=tk.W, pady=5)
+            enabled_checkbox = ttk.Checkbutton(frame, text="启用该通知", variable=enabled_var,
+                                            style='TCheckbutton')
+            enabled_checkbox.grid(row=3, column=1, sticky=tk.W, pady=(0, 20))
             
             # 保存按钮
             def save_new_notification():
                 try:
                     title = title_var.get().strip()
                     message = text_widget.get("1.0", tk.END).strip()
-                    hour = int(hour_var.get())
-                    minute = int(minute_var.get())
+                    hour = hour_var.get()
+                    minute = minute_var.get()
                     
                     if not title:
                         self.show_windows_notification("嗯？", "标题不能为空")
@@ -1634,9 +1777,14 @@ class CountdownApp:
                 except Exception as e:
                     self.show_windows_notification("Oops！", str(e))
             
+            # 按钮框架，居中显示保存按钮
             button_frame = ttk.Frame(frame)
-            button_frame.grid(row=4, column=0, columnspan=2, pady=20)
-            ttk.Button(button_frame, text="保存", command=save_new_notification).pack(pady=10)
+            button_frame.grid(row=4, column=0, columnspan=3, pady=10)
+            
+            # 美化的保存按钮
+            save_button = ttk.Button(button_frame, text="保存通知", command=save_new_notification,
+                                    style='TButton', width=15)
+            save_button.pack(pady=10)
         
         # 添加新通知按钮
         buttons_frame = ttk.Frame(main_frame)
@@ -1667,51 +1815,71 @@ class CountdownApp:
             # 创建编辑窗口
             edit_window = tk.Toplevel(notification_window)
             edit_window.title("编辑通知")
-            edit_window.geometry("350x300")
+            edit_window.geometry("400x320")  # 增大窗口尺寸，与添加窗口一致
             edit_window.resizable(False, False)
             
             # 创建框架
-            frame = ttk.Frame(edit_window, padding="15")
+            frame = ttk.Frame(edit_window, padding="20")
             frame.pack(fill=tk.BOTH, expand=True)
             
+            # 配置网格布局的列权重
+            frame.columnconfigure(0, weight=0)
+            frame.columnconfigure(1, weight=1)
+            
             # 标题输入
-            ttk.Label(frame, text="标题:").grid(row=0, column=0, sticky=tk.W, pady=5)
+            ttk.Label(frame, text="标题:", font=('Microsoft YaHei UI', 10)).grid(
+                row=0, column=0, sticky=tk.W + tk.N, pady=(0, 10), padx=(0, 10))
             title_var = tk.StringVar(value=notification['title'])
-            ttk.Entry(frame, textvariable=title_var, width=30).grid(row=0, column=1, pady=5)
+            title_entry = ttk.Entry(frame, textvariable=title_var, width=35)
+            title_entry.grid(row=0, column=1, sticky=tk.E + tk.W, pady=(0, 10))
+            title_entry.focus_set()  # 自动聚焦到标题输入框
             
             # 消息输入
-            ttk.Label(frame, text="消息:").grid(row=1, column=0, sticky=tk.NW, pady=5)
-            message_var = tk.StringVar(value=notification['message'])
-            text_widget = tk.Text(frame, height=5, width=25)
+            ttk.Label(frame, text="消息:", font=('Microsoft YaHei UI', 10)).grid(
+                row=1, column=0, sticky=tk.W + tk.N, pady=(0, 10), padx=(0, 10))
+            text_widget = tk.Text(frame, height=6, width=30, font=('Microsoft YaHei UI', 10))
             text_widget.insert(tk.END, notification['message'])
-            text_widget.grid(row=1, column=1, pady=5)
+            text_widget.grid(row=1, column=1, sticky=tk.E + tk.W + tk.N + tk.S, pady=(0, 10))
+            
+            # 添加消息框的垂直滚动条
+            msg_scrollbar = ttk.Scrollbar(frame, orient="vertical", command=text_widget.yview)
+            msg_scrollbar.grid(row=1, column=2, sticky=tk.N + tk.S, pady=(0, 10))
+            text_widget.configure(yscrollcommand=msg_scrollbar.set)
             
             # 时间选择
-            ttk.Label(frame, text="时间:").grid(row=2, column=0, sticky=tk.W, pady=5)
+            ttk.Label(frame, text="时间:", font=('Microsoft YaHei UI', 10)).grid(
+                row=2, column=0, sticky=tk.W + tk.N, pady=(0, 15), padx=(0, 10))
             time_frame = ttk.Frame(frame)
-            time_frame.grid(row=2, column=1, pady=5, sticky=tk.W)
+            time_frame.grid(row=2, column=1, sticky=tk.W, pady=(0, 15))
             
-            hour_var = tk.StringVar(value=str(notification['hour']))
-            minute_var = tk.StringVar(value=str(notification['minute']))
+            # 小时步进器
+            hour_var = tk.IntVar(value=notification['hour'])
+            hour_spinbox = ttk.Spinbox(time_frame, from_=0, to=23, textvariable=hour_var, 
+                                    width=4, font=('Microsoft YaHei UI', 10), justify=tk.CENTER)
+            hour_spinbox.pack(side=tk.LEFT, padx=2)
             
-            hours = [str(i).zfill(2) for i in range(24)]
-            minutes = [str(i).zfill(2) for i in range(0, 60, 5)]
+            # 分隔符
+            ttk.Label(time_frame, text=":", font=('Microsoft YaHei UI', 12, 'bold')).pack(side=tk.LEFT)
             
-            ttk.Combobox(time_frame, textvariable=hour_var, values=hours, width=5).pack(side=tk.LEFT, padx=2)
-            ttk.Label(time_frame, text=":").pack(side=tk.LEFT)
-            ttk.Combobox(time_frame, textvariable=minute_var, values=minutes, width=5).pack(side=tk.LEFT, padx=2)
+            # 分钟步进器
+            minute_var = tk.IntVar(value=notification['minute'])
+            minute_spinbox = ttk.Spinbox(time_frame, from_=0, to=59, textvariable=minute_var,
+                                        width=4, font=('Microsoft YaHei UI', 10), justify=tk.CENTER)
+            minute_spinbox.pack(side=tk.LEFT, padx=2)
             
             # 启用复选框
             enabled_var = tk.BooleanVar(value=notification['enabled'])
-            ttk.Checkbutton(frame, text="启用该通知", variable=enabled_var).grid(row=3, column=1, sticky=tk.W, pady=5)
+            enabled_checkbox = ttk.Checkbutton(frame, text="启用该通知", variable=enabled_var,
+                                            style='TCheckbutton')
+            enabled_checkbox.grid(row=3, column=1, sticky=tk.W, pady=(0, 20))
             
             # 保存按钮
             def save_changes():
                 try:
                     title = title_var.get().strip()
                     message = text_widget.get("1.0", tk.END).strip()
-                    hour = int(hour_var.get())
-                    minute = int(minute_var.get())
+                    hour = hour_var.get()
+                    minute = minute_var.get()
                     
                     if not title:
                         self.show_windows_notification("嗯？", "标题不能为空")
@@ -1730,9 +1898,14 @@ class CountdownApp:
                 except Exception as e:
                     self.show_windows_notification("Oops！", str(e))
             
+            # 按钮框架，居中显示保存按钮
             button_frame = ttk.Frame(frame)
-            button_frame.grid(row=4, column=0, columnspan=2, pady=20)
-            ttk.Button(button_frame, text="保存", command=save_changes).pack(pady=10)
+            button_frame.grid(row=4, column=0, columnspan=3, pady=10)
+            
+            # 美化的保存按钮
+            save_button = ttk.Button(button_frame, text="保存修改", command=save_changes,
+                                    style='TButton', width=15)
+            save_button.pack(pady=10)
         
     def toggle_getting_mode(self):
         """切换获取模式（名言/单词）"""
@@ -3029,7 +3202,6 @@ if __name__ == "__main__":
         # 程序已经在运行，显示提示并退出
         root = tk.Tk()
         root.withdraw()  # 隐藏主窗口
-        # messagebox.showinfo("启动检测", "已有相同程序运行中（谁干的好事我不说）\n即将退出当前程序")
         root.destroy()
         sys.exit(0)
     
