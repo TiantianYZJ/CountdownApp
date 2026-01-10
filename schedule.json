@@ -1,0 +1,314 @@
+{
+  "time_slots": [
+    {
+      "slot_id": 1,
+      "start_time": "07:30",
+      "end_time": "07:55"
+    },
+    {
+      "slot_id": 2,
+      "start_time": "08:00",
+      "end_time": "08:40"
+    },
+    {
+      "slot_id": 3,
+      "start_time": "08:50",
+      "end_time": "09:30"
+    },
+    {
+      "slot_id": 4,
+      "start_time": "09:40",
+      "end_time": "10:20"
+    },
+    {
+      "slot_id": 5,
+      "start_time": "10:30",
+      "end_time": "11:10"
+    },
+    {
+      "slot_id": 6,
+      "start_time": "11:20",
+      "end_time": "12:00"
+    },
+    {
+      "slot_id": 7,
+      "start_time": "14:00",
+      "end_time": "14:40"
+    },
+    {
+      "slot_id": 8,
+      "start_time": "14:50",
+      "end_time": "15:30"
+    },
+    {
+      "slot_id": 9,
+      "start_time": "15:45",
+      "end_time": "16:25"
+    },
+    {
+      "slot_id": 10,
+      "start_time": "16:35",
+      "end_time": "17:15"
+    },
+    {
+      "slot_id": 11,
+      "start_time": "17:25",
+      "end_time": "18:05"
+    },
+    {
+      "slot_id": 12,
+      "start_time": "19:00",
+      "end_time": "21:30"
+    }
+  ],
+  "school_days": {
+    "Monday": [
+      {
+        "slot_id": 1,
+        "name": "升/历"
+      },
+      {
+        "slot_id": 2,
+        "name": "语文"
+      },
+      {
+        "slot_id": 3,
+        "name": "数学"
+      },
+      {
+        "slot_id": 4,
+        "name": "英语"
+      },
+      {
+        "slot_id": 5,
+        "name": "化学"
+      },
+      {
+        "slot_id": 6,
+        "name": "物理"
+      },
+      {
+        "slot_id": 7,
+        "name": "体育"
+      },
+      {
+        "slot_id": 8,
+        "name": "历史"
+      },
+      {
+        "slot_id": 9,
+        "name": "班会"
+      },
+      {
+        "slot_id": 10,
+        "name": "数学"
+      },
+      {
+        "slot_id": 11,
+        "name": "数学"
+      },
+      {
+        "slot_id": 12,
+        "name": "道/历"
+      }
+    ],
+    "Tuesday": [
+      {
+        "slot_id": 1,
+        "name": "语文"
+      },
+      {
+        "slot_id": 2,
+        "name": "物理"
+      },
+      {
+        "slot_id": 3,
+        "name": "数学"
+      },
+      {
+        "slot_id": 4,
+        "name": "道法"
+      },
+      {
+        "slot_id": 5,
+        "name": "体育"
+      },
+      {
+        "slot_id": 6,
+        "name": "英语"
+      },
+      {
+        "slot_id": 7,
+        "name": "历史"
+      },
+      {
+        "slot_id": 8,
+        "name": "数学"
+      },
+      {
+        "slot_id": 9,
+        "name": "语文"
+      },
+      {
+        "slot_id": 10,
+        "name": "语文"
+      },
+      {
+        "slot_id": 11,
+        "name": "物理"
+      },
+      {
+        "slot_id": 12,
+        "name": "物/化"
+      }
+    ],
+    "Wednesday": [
+      {
+        "slot_id": 1,
+        "name": "英语"
+      },
+      {
+        "slot_id": 2,
+        "name": "数学"
+      },
+      {
+        "slot_id": 3,
+        "name": "化学"
+      },
+      {
+        "slot_id": 4,
+        "name": "道法"
+      },
+      {
+        "slot_id": 5,
+        "name": "英语"
+      },
+      {
+        "slot_id": 6,
+        "name": "体育"
+      },
+      {
+        "slot_id": 7,
+        "name": "语文"
+      },
+      {
+        "slot_id": 8,
+        "name": "物理"
+      },
+      {
+        "slot_id": 9,
+        "name": "历史"
+      },
+      {
+        "slot_id": 10,
+        "name": "数学"
+      },
+      {
+        "slot_id": 11,
+        "name": "数学"
+      },
+      {
+        "slot_id": 12,
+        "name": "语文"
+      }
+    ],
+    "Thursday": [
+      {
+        "slot_id": 1,
+        "name": "语文"
+      },
+      {
+        "slot_id": 2,
+        "name": "语文"
+      },
+      {
+        "slot_id": 3,
+        "name": "英语"
+      },
+      {
+        "slot_id": 4,
+        "name": "英语"
+      },
+      {
+        "slot_id": 5,
+        "name": "数学"
+      },
+      {
+        "slot_id": 6,
+        "name": "语文"
+      },
+      {
+        "slot_id": 7,
+        "name": "体育"
+      },
+      {
+        "slot_id": 8,
+        "name": "道法"
+      },
+      {
+        "slot_id": 9,
+        "name": "化学"
+      },
+      {
+        "slot_id": 10,
+        "name": "英语"
+      },
+      {
+        "slot_id": 11,
+        "name": "化学"
+      },
+      {
+        "slot_id": 12,
+        "name": "英语"
+      }
+    ],
+    "Friday": [
+      {
+        "slot_id": 1,
+        "name": "英语"
+      },
+      {
+        "slot_id": 2,
+        "name": "数学"
+      },
+      {
+        "slot_id": 3,
+        "name": "英语"
+      },
+      {
+        "slot_id": 4,
+        "name": "物理"
+      },
+      {
+        "slot_id": 5,
+        "name": "语文"
+      },
+      {
+        "slot_id": 6,
+        "name": "历史"
+      },
+      {
+        "slot_id": 7,
+        "name": "化学"
+      },
+      {
+        "slot_id": 8,
+        "name": "体育"
+      },
+      {
+        "slot_id": 9,
+        "name": "历/道"
+      },
+      {
+        "slot_id": 10,
+        "name": "物化"
+      }
+    ],
+    "Sunday": [
+      {
+        "slot_id": 12,
+        "name": "数学"
+      }
+    ]
+  }
+}
