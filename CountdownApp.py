@@ -185,7 +185,7 @@ class CountdownApp:
         
         # 更新名言标签的wraplength以适应新的窗口宽度
         if self.quote_label:
-            self.quote_label.config(wraplength=width // 2 - 50)
+            self.quote_label.config(wraplength=width // 2)
 
     def setup_styles(self, base_font_size):
         """设置ttk样式"""
@@ -759,7 +759,7 @@ class CountdownApp:
         
         # 创建状态标签，使用ttk样式
         self.status_label = ttk.Label(self.status_frame, style="Status.TLabel", 
-                                    justify='left', wraplength=400)
+                                    justify='left', wraplength=400, text="⭕️ 内容加载中...")
         self.status_label.pack(fill=tk.X)
 
         # 创建底部按钮容器
@@ -785,7 +785,7 @@ class CountdownApp:
         self.global_settings_button.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=0)
 
         # 右键菜单按钮
-        self.right_click_menu_button = ttk.Button(buttons_container, text="右键菜单", 
+        self.right_click_menu_button = ttk.Button(buttons_container, text="更多功能", 
                                                 command=lambda: self.show_context_menu(None),
                                                 style="Main.TButton")
         self.right_click_menu_button.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=0)
@@ -1150,13 +1150,13 @@ class CountdownApp:
                     # 转换为小时和分钟
                     study_hours = total_study_minutes // 60
                     study_mins = total_study_minutes % 60
-                    study_stats = f"⏱ 今日已学习 {study_hours}小时{study_mins}分钟"
+                    study_stats = f"⏱ 今日已学习 {study_hours} 小时 {study_mins} 分钟"
                     
                     # 即将下课提醒
                     if is_in_class:
                         remaining_mins = class_end_minutes - current_minutes
-                        if 1 <= remaining_mins <= 10:
-                            study_stats += f"\n🔔 「{current_status}」还有{remaining_mins}分钟就要下课啦"
+                        if 1 <= remaining_mins <= 15:
+                            study_stats += f"\n🔔 「{current_status}」还有 {remaining_mins} 分钟就要下课啦"
             except Exception as e:
                 study_stats = "⏱ 学习统计中..."
             
@@ -2041,7 +2041,7 @@ class CountdownApp:
         
     def show_about(self):
         """显示关于信息"""
-        about_message = "桌面时钟倒计时组件\n版本 1.6.0-260111\n开发：TiantianYZJ（yzjtiantian@126.com）\n\n感谢：\n- @zhy_0928_fc (←此人鬼点子多)\n- 一言API (https://hitokoto.cn/)\n- OIAPI (https://oiapi.net/)\n- 心知天气API (https://www.seniverse.com/)\n\n本软件遵循MIT开源协议。"
+        about_message = "桌面时钟倒计时组件-CountdownApp\n版本 1.6.0-260111\n开发：TiantianYZJ（yzjtiantian@126.com）\n\n感谢：\n- @zhy_0928_fc (←此人鬼点子多)\n- 一言API (https://hitokoto.cn/)\n- OIAPI (https://oiapi.net/)\n- 心知天气API (https://www.seniverse.com/)\n\n本软件遵循MIT开源协议，\n可在 GitHub 获取源代码\n（https://github.com/TiantianYZJ/CountdownApp/）。"
         messagebox.showinfo("关于", about_message)
 
     def quit(self):
@@ -2068,7 +2068,7 @@ class CountdownApp:
         self.context_menu.add_command(label="每日一笑", command=self.show_joke_window)
         self.context_menu.add_command(label="AI绘画", command=self.show_ai_painting_window)
         self.context_menu.add_command(label="系统计算器", command=self.show_calculator_window)
-        self.context_menu.add_command(label="添加桌面便签", command=self.show_notepad_window)
+        self.context_menu.add_command(label="添加桌面便签（NEW）", command=self.show_notepad_window)
         self.context_menu.add_separator()
         self.context_menu.add_command(label="切换名言/单词", command=self.toggle_getting_mode)
         self.context_menu.add_command(label="重置迷你时钟位置", command=self.reset_mini_window_position)
@@ -3314,7 +3314,7 @@ class CountdownApp:
                                         anchor='nw')
 
             # 将Label添加到Canvas
-            self.label_window = self.notepad_canvas.create_window((10, 10), window=self.notepad_label, 
+            self.label_window = self.notepad_canvas.create_window((12, 12), window=self.notepad_label, 
                                                                 anchor="nw", tags="label")
 
             # 设置Canvas滚动区域
@@ -3375,6 +3375,14 @@ class CountdownApp:
             self.window.after_idle(lambda: self.notepad_canvas.configure(
                 scrollregion=self.notepad_canvas.bbox("all")
             ))
+
+        def update_label_wraplength(self):
+            """更新Label的wraplength，确保不被滚动条遮挡"""
+            # 计算可用宽度：窗口宽度 - 左右内边距(12*2) - 滚动条宽度(如果显示的话)
+            # 由于滚动条宽度是15px(minsize=15)，我们统一减去这个宽度以确保内容不被遮挡
+            available_width = self.window_width - 24 - 15  # 24=12*2内边距，15=滚动条宽度
+            self.notepad_label.configure(wraplength=available_width)
+            self.update_canvas_scrollregion()
         
         def on_always_on_top_change(self):
             """处理始终置顶复选框状态变化"""
@@ -3388,6 +3396,8 @@ class CountdownApp:
             self.font_size = self.font_size_var.get()
             # 更新标签的字体大小
             self.notepad_label.configure(font=('Microsoft YaHei UI', self.font_size))
+            # 更新Label的wraplength
+            self.update_label_wraplength()
             # 更新Canvas滚动区域
             self.update_canvas_scrollregion()
             # 如果当前显示的是输入框，也更新输入框的字体大小
@@ -3405,9 +3415,9 @@ class CountdownApp:
             current_title = self.notepad_title.get()
             
             # 创建临时输入框替换标题标签
-            self.title_entry = tk.Entry(self.operation_frame, font=('Microsoft YaHei UI', 12, 'bold'),
+            self.title_entry = tk.Entry(self.operation_frame, font=('Microsoft YaHei UI', 15, 'bold'),
                                     bg="#fff599", bd=0)
-            self.title_entry.grid(row=0, column=0, sticky="ew", padx=10, pady=(5,0))
+            self.title_entry.grid(row=0, column=0, sticky="ew", padx=10, pady=(5,5))
             
             # 设置输入框内容
             self.title_entry.insert(0, current_title)
@@ -3450,7 +3460,7 @@ class CountdownApp:
             else:
                 title = self.notepad_title.get()
             
-            if messagebox.askyesno("确认关闭", f"确定要关闭便签：{title}吗？\n关闭后内容不会保存"):
+            if messagebox.askyesno("确认关闭", f"确定要关闭“{title}”吗？\n注意：关闭后内容不会保存"):
                 # 确认关闭，销毁便签窗口
                 self.window.destroy()
                 # 从主应用的便签列表中移除
@@ -3522,6 +3532,9 @@ class CountdownApp:
             
             # 设置滚动条绑定到Canvas
             self.scrollbar.config(command=self.notepad_canvas.yview)
+
+            # 更新Label的wraplength（确保内容不被滚动条遮挡）
+            self.update_label_wraplength()
             
             # 更新Canvas滚动区域
             self.update_canvas_scrollregion()
@@ -3534,7 +3547,7 @@ class CountdownApp:
                 
                 # 如果内容为空，显示默认提示文字
                 if not content:
-                    content = "点击添加文本"
+                    content = "点击输入文本"
                 
                 # 更新标签内容
                 self.notepad_text.set(content)
