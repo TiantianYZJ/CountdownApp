@@ -1,23 +1,25 @@
+import datetime
+import json
+import os
 import math
 import random
+import re
+import requests
+import sqlite3
+import sys
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-import datetime
+import threading
 from win10toast import ToastNotifier
 import win32api
 import win32con
 import winerror
 import win32event
 import win32gui
-import requests
-import threading
-import json
-import os
-import sys
-import sqlite3
-import re
 
 class CountdownApp:
+    notepad_count = 0  # 便签计数类变量
+
     def __init__(self):
         # 创建主窗口
         self.root = tk.Tk()
@@ -112,7 +114,6 @@ class CountdownApp:
         
         # 绑定Canvas的Configure事件，使内容容器宽度与Canvas一致
         def on_canvas_configure(event):
-            # 设置内容容器宽度与Canvas一致
             self.schedule_canvas.itemconfig(self.schedule_content_id, width=event.width)
         
         self.schedule_canvas.bind("<Configure>", on_canvas_configure)
@@ -160,13 +161,14 @@ class CountdownApp:
         
         # 设置窗口位置
         self.set_window_position()
-        
-        # 设置窗口在底层
-        # self.set_window_behind_apps()
 
         # 属性初始化
         self.last_morning_notification = None
         self.last_evening_notification = None
+
+        # 便签窗口管理
+        self.notepad_count = 0
+        self.notepads = []  # 存储所有便签窗口实例
     
     def update_font_sizes(self, event=None):
         """根据窗口尺寸更新所有标签的字体大小"""
@@ -252,19 +254,19 @@ class CountdownApp:
         
         # 课程时间标签
         style.configure("ClassTime.TLabel", background="black", foreground="#98FB98", 
-                        font=('Consolas', int(base_font_size + 2)), padding=0)
+                        font=('YouYuan', int(base_font_size + 2)), padding=0)
         style.configure("ClassName.TLabel", background="black", foreground="white", 
                         font=('YouYuan', int(base_font_size + 2), 'bold'), padding=(100, 0))
         
         # 当前课程时间标签
         style.configure("CurrentClassTime.TLabel", background="#DDE3D2", foreground="#262626", 
-                        font=('Consolas', int(base_font_size + 2)), padding=0)
+                        font=('YouYuan', int(base_font_size + 2)), padding=0)
         style.configure("CurrentClassName.TLabel", background="#DDE3D2", foreground="#262626", 
                         font=('YouYuan', int(base_font_size + 2), 'bold'), padding=(100, 0))
         
         # 已结束课程标签
         style.configure("ClassTime.Gray.TLabel", background="black", foreground="#666666", 
-                        font=('Consolas', int(base_font_size + 2)), padding=0)
+                        font=('YouYuan', int(base_font_size + 2)), padding=0)
         style.configure("ClassName.Gray.TLabel", background="black", foreground="#888888", 
                         font=('YouYuan', int(base_font_size + 2), 'bold'), padding=(100, 0))
         
@@ -1078,13 +1080,13 @@ class CountdownApp:
                         temperature = now["temperature"]
                         weather_info = f"当前{weather_text}，{temperature}°C"
             except Exception as e:
-                # 天气获取失败不影响其他功能
+                # 获取失败
                 weather_info = "今天天气不错哦"
             
             # 2. 检查特殊日期
             special_dates = [
                 {"name": "期末考试", "month": 1, "start_day": 22, "end_day": 23}
-                # 可以在这里添加更多特殊日期
+                # 这里添加更多特殊日期
             ]
             special_date_info = ""
             today = datetime.datetime.now().date()
@@ -1103,13 +1105,13 @@ class CountdownApp:
                     next_special_date = start_date
                     next_special_name = date_info['name']
             
-            # 如果当天没有特殊日，显示距离下一个特殊日的倒计时
+            # 如果当天没有特殊日，显示下一个特殊日的倒计时
             if not special_date_info and next_special_date:
                 days_left = (next_special_date - today).days
                 special_date_info = f"📅 距离「{next_special_name}」还有 {days_left} 天"
             
             # 3. 计算学习统计
-            study_stats = ""
+            study_stats = "⏱ 暂无学习任务"
             try:
                 today_weekday = datetime.datetime.now().strftime('%A')
                 if today_weekday in self.schedule_data['school_days']:
@@ -1275,8 +1277,7 @@ class CountdownApp:
 {special_date_info}
 {study_stats}
 >> {motivational_quote}"""
-            self.status_label.configure(style="Status.TLabel")
-            self.status_label.configure(text=status_text)
+            self.status_label.configure(style="Status.TLabel", text=status_text)
         
         # 自动刷新
         self.root.after(10 * 1000, self.update_status_text)  # 10秒刷新一次
@@ -2040,7 +2041,7 @@ class CountdownApp:
         
     def show_about(self):
         """显示关于信息"""
-        about_message = "桌面时钟倒计时组件\n版本 1.6.0-260110\n开发：TiantianYZJ（yzjtiantian@126.com）\n\n感谢：\n- @zhy_0928_fc (功能建议)\n- 一言API (https://hitokoto.cn/)\n- OIAPI (https://oiapi.net/)\n- 心知天气API (https://www.seniverse.com/)\n\n本软件遵循MIT开源协议。"
+        about_message = "桌面时钟倒计时组件\n版本 1.6.0-260111\n开发：TiantianYZJ（yzjtiantian@126.com）\n\n感谢：\n- @zhy_0928_fc (←此人鬼点子多)\n- 一言API (https://hitokoto.cn/)\n- OIAPI (https://oiapi.net/)\n- 心知天气API (https://www.seniverse.com/)\n\n本软件遵循MIT开源协议。"
         messagebox.showinfo("关于", about_message)
 
     def quit(self):
@@ -2067,6 +2068,7 @@ class CountdownApp:
         self.context_menu.add_command(label="每日一笑", command=self.show_joke_window)
         self.context_menu.add_command(label="AI绘画", command=self.show_ai_painting_window)
         self.context_menu.add_command(label="系统计算器", command=self.show_calculator_window)
+        self.context_menu.add_command(label="添加桌面便签", command=self.show_notepad_window)
         self.context_menu.add_separator()
         self.context_menu.add_command(label="切换名言/单词", command=self.toggle_getting_mode)
         self.context_menu.add_command(label="重置迷你时钟位置", command=self.reset_mini_window_position)
@@ -3184,6 +3186,358 @@ class CountdownApp:
             frame.after(100, lambda: on_enter_press(None))
         
         entry.bind("<FocusOut>", on_focus_out)
+
+    # 创建NotepadWindow实例
+    def show_notepad_window(self):
+        """创建桌面便签窗口"""
+        # 增加便签计数
+        self.notepad_count += 1
+        
+        # 创建便签窗口实例
+        notepad = self.NotepadWindow(self, self.notepad_count)
+        
+        # 将实例添加到列表中管理
+        self.notepads.append(notepad)
+
+    class NotepadWindow:
+        def __init__(self, parent, count):
+            self.parent = parent
+            self.count = count
+            self.window = None
+            self.operation_frame = None
+            self.content_frame = None
+            self.title_label = None
+            self.title_entry = None
+            self.close_button = None
+            self.notepad_label = None
+            self.notepad_entry = None
+            self.notepad_text = None
+            self.notepad_title = None
+            self.drag_data = None
+            self.font_size = 12  # 字体大小变量
+            self.window_width = 300
+            self.window_height = 300
+            self.operation_height = 30
+            self.notepad_setting_height = 30
+            self.content_height = self.window_height - self.operation_height - self.notepad_setting_height - 50
+            
+            self.create_window()
+
+        def create_window(self):
+            # 创建便签窗口
+            self.window = tk.Toplevel(self.parent.root)
+            self.window.overrideredirect(True)  # 无边框
+            self.window.configure(bg="#fff599")  # 黄色背景
+            self.window.title(f"便签#{self.count}")  # 设置窗口标题
+            self.window.attributes("-alpha", 0.9)
+
+            
+            # 设置窗口大小和位置
+            screen_width = self.window.winfo_screenwidth()
+            screen_height = self.window.winfo_screenheight()
+            x = (screen_width - self.window_width) // 2 + (self.count - 1) * 50
+            y = (screen_height - self.window_height) // 2 + (self.count - 1) * 50
+            self.window.geometry(f"{self.window_width}x{self.window_height}+{x}+{y}")
+            
+            # 将窗口置于最底层
+            try:
+                hwnd = win32gui.FindWindow(None, "")
+                win32gui.SetWindowPos(hwnd, win32con.HWND_BOTTOM, 0, 0, 0, 0, 
+                                    win32con.SWP_NOSIZE | win32con.SWP_NOMOVE | win32con.SWP_NOACTIVATE)
+            except:
+                pass  # 如果没有安装pywin32库，就不执行此操作
+            
+            # 窗口布局：使用grid布局确保各区域位置固定
+            self.window.grid_rowconfigure(0, minsize=self.operation_height, weight=0)
+            self.window.grid_rowconfigure(1, minsize=self.content_height, weight=1)
+            self.window.grid_rowconfigure(2, minsize=self.notepad_setting_height, weight=0)
+            self.window.grid_columnconfigure(0, weight=1)
+            
+            # 创建操作区框架（标题栏）
+            self.operation_frame = tk.Frame(self.window, bg="#fff599", height=self.operation_height)
+            self.operation_frame.grid(row=0, column=0, sticky="ew")
+            self.operation_frame.pack_propagate(False)  # 防止框架大小被内容改变
+            
+            # 操作区布局
+            self.operation_frame.grid_columnconfigure(0, weight=1)
+            self.operation_frame.grid_columnconfigure(1, minsize=20, weight=0)
+            
+            # 标题标签
+            self.notepad_title = tk.StringVar(value=f"便签#{self.count}")
+            self.title_label = tk.Label(self.operation_frame, textvariable=self.notepad_title, 
+                                    font=('Microsoft YaHei UI', 15, 'bold'), bg="#fff599",
+                                    anchor='w', cursor='hand2')
+            self.title_label.grid(row=0, column=0, sticky="ew", padx=10, pady=(5,0))
+            
+            # 拖拽按钮
+            self.drag_button = tk.Label(self.operation_frame, text="≡", 
+                                    font=('Microsoft YaHei UI', 15), bg="#fff599",
+                                    cursor='hand2')
+            self.drag_button.grid(row=0, column=1, sticky="e", padx=5, pady=0)
+
+            # 关闭按钮
+            self.close_button = tk.Label(self.operation_frame, text="✕", 
+                                    font=('Microsoft YaHei UI', 15), bg="#fff599",
+                                    fg="red", cursor='hand2')
+            self.close_button.grid(row=0, column=2, sticky="e", padx=5, pady=0)
+
+            # 创建内容区框架
+            self.content_frame = tk.Frame(self.window, bg="#fff599")
+            self.content_frame.grid(row=1, column=0, sticky="nsew", padx=0, pady=0)
+            self.content_frame.pack_propagate(False)
+
+            # 配置内容区的网格布局，为滚动条留出空间
+            self.content_frame.grid_rowconfigure(0, weight=1)
+            self.content_frame.grid_columnconfigure(0, weight=1)
+            self.content_frame.grid_columnconfigure(1, minsize=15, weight=0)
+
+            # 创建共享滚动条
+            self.scrollbar = tk.Scrollbar(self.content_frame, 
+                                          orient=tk.VERTICAL, 
+                                          troughcolor="#fff599",
+                                          takefocus=False
+                                          )
+            self.scrollbar.grid(row=0, column=1, sticky="ns")
+
+            # 创建便签内容标签（放入Canvas实现滚动）
+            self.notepad_text = tk.StringVar(value="点击输入文本")
+
+            # 创建Canvas用于包装Label实现滚动
+            self.notepad_canvas = tk.Canvas(self.content_frame, bg="#fff599", bd=0, highlightthickness=0,
+                                            yscrollcommand=self.scrollbar.set)
+            self.notepad_canvas.grid(row=0, column=0, sticky="nsew")
+
+            # 创建Label并放入Canvas
+            self.notepad_label = tk.Label(self.notepad_canvas, textvariable=self.notepad_text, 
+                                        font=('Microsoft YaHei UI', self.font_size), bg='#fff599', 
+                                        wraplength=self.window_width-10, justify='left', 
+                                        anchor='nw')
+
+            # 将Label添加到Canvas
+            self.label_window = self.notepad_canvas.create_window((10, 10), window=self.notepad_label, 
+                                                                anchor="nw", tags="label")
+
+            # 设置Canvas滚动区域
+            self.notepad_text.trace("w", self.update_canvas_scrollregion)
+
+            # 绑定滚动条到Canvas
+            self.scrollbar.config(command=self.notepad_canvas.yview)
+            
+            # 创建设置框架
+            self.notepad_setting_frame = tk.Frame(self.window, bg="#fff599", height=self.notepad_setting_height)
+            self.notepad_setting_frame.grid(row=2, column=0, sticky="ew")
+            self.notepad_setting_frame.pack_propagate(False)  # 防止框架大小被内容改变
+            
+            # 字号调整区布局
+            self.notepad_setting_frame.grid_columnconfigure(0, minsize=50, weight=0)
+            self.notepad_setting_frame.grid_columnconfigure(1, minsize=60, weight=0)
+            self.notepad_setting_frame.grid_columnconfigure(2, weight=1)
+            
+            # 添加字号标签
+            ttk.Label(self.notepad_setting_frame, text="字号:", font=('Microsoft YaHei UI', 10), 
+                    background="#fff599").grid(row=0, column=0, sticky="w", padx=5, pady=5)
+            
+            # 添加ttk步进器
+            self.font_size_var = tk.IntVar(value=self.font_size)
+            self.font_size_spinbox = ttk.Spinbox(self.notepad_setting_frame, from_=8, to=50, 
+                                            textvariable=self.font_size_var, 
+                                            command=self.on_font_size_change,
+                                            width=5)
+            self.font_size_spinbox.grid(row=0, column=1, sticky="w", padx=5, pady=5)
+
+            # 设置ttk复选框样式，使其背景与便签背景一致
+            style = ttk.Style()
+            style.configure("Notepad.TCheckbutton", background="#fff599", fieldbackground="#fff599")
+
+            # "始终置顶"复选框
+            self.always_on_top_var = tk.BooleanVar(value=False)
+            self.always_on_top_checkbox = ttk.Checkbutton(self.notepad_setting_frame, text="始终置顶",
+                                                        variable=self.always_on_top_var,
+                                                        command=self.on_always_on_top_change,
+                                                        style="Notepad.TCheckbutton",
+                                                        takefocus=False)
+            self.always_on_top_checkbox.grid(row=0, column=2, sticky="e", padx=5, pady=5)
+            
+            # 绑定事件
+            self.title_label.bind("<Button-1>", lambda e: self.on_title_click(e))  # 标题点击事件
+            self.close_button.bind("<Button-1>", lambda e: self.on_close_click(e))  # 关闭按钮点击事件
+            self.notepad_label.bind("<Button-1>", lambda e: self.on_notepad_click(e))  # 内容点击事件
+            
+            # 绑定拖动事件
+            self.drag_button.bind("<Button-1>", lambda e: self.on_drag_start(e))
+            self.drag_button.bind("<B1-Motion>", lambda e: self.on_drag_motion(e))
+            
+            # 发送通知
+            self.parent.show_windows_notification(f"便签#{self.count} 已创建", "点击便签可以添加内容\n点击标题可以修改标题\n按住 ≡ 可以移动便签位置")
+
+        def update_canvas_scrollregion(self, *args):
+            """更新Canvas的滚动区域"""
+            self.window.after_idle(lambda: self.notepad_canvas.configure(
+                scrollregion=self.notepad_canvas.bbox("all")
+            ))
+        
+        def on_always_on_top_change(self):
+            """处理始终置顶复选框状态变化"""
+            if self.always_on_top_var.get():
+                self.window.attributes("-topmost", True)
+            else:
+                self.window.attributes("-topmost", False)
+
+        def on_font_size_change(self):
+            """处理字号调整事件"""
+            self.font_size = self.font_size_var.get()
+            # 更新标签的字体大小
+            self.notepad_label.configure(font=('Microsoft YaHei UI', self.font_size))
+            # 更新Canvas滚动区域
+            self.update_canvas_scrollregion()
+            # 如果当前显示的是输入框，也更新输入框的字体大小
+            if hasattr(self, 'notepad_entry') and self.notepad_entry:
+                self.notepad_entry.configure(font=('Microsoft YaHei UI', self.font_size))
+
+        def on_title_click(self, event):
+            """处理标题点击事件，将标题变为输入框"""
+            # 如果已有输入框，先销毁
+            if hasattr(self, 'title_entry') and self.title_entry:
+                self.title_entry.destroy()
+                self.title_entry = None
+            
+            # 获取当前标题
+            current_title = self.notepad_title.get()
+            
+            # 创建临时输入框替换标题标签
+            self.title_entry = tk.Entry(self.operation_frame, font=('Microsoft YaHei UI', 12, 'bold'),
+                                    bg="#fff599", bd=0)
+            self.title_entry.grid(row=0, column=0, sticky="ew", padx=10, pady=(5,0))
+            
+            # 设置输入框内容
+            self.title_entry.insert(0, current_title)
+            self.title_entry.select_range(0, tk.END)
+            
+            # 隐藏标题标签
+            self.title_label.grid_remove()
+            
+            # 绑定事件
+            self.title_entry.bind("<FocusOut>", lambda e: self.on_title_save(e))
+            self.title_entry.bind("<Return>", lambda e: self.on_title_save(e))
+            # 防止点击输入框时触发父容器的点击事件
+            self.title_entry.bind("<Button-1>", lambda e: "break")
+            
+            # 获取焦点
+            self.title_entry.focus_set()
+
+        def on_title_save(self, event):
+            """保存标题并切换回标签"""
+            # 获取新标题
+            new_title = self.title_entry.get().strip()
+            if not new_title:
+                new_title = f"便签#{self.count}"
+            
+            # 更新标题
+            self.notepad_title.set(new_title)
+            
+            # 销毁输入框
+            self.title_entry.destroy()
+            self.title_entry = None
+            
+            # 显示标题标签
+            self.title_label.grid(row=0, column=0, sticky="ew", padx=10, pady=(5,0))
+
+        def on_close_click(self, event):
+            """处理关闭按钮点击事件，显示确认提示框"""
+            # 安全获取当前标题，避免AttributeError
+            if hasattr(self, 'title_entry') and self.title_entry:
+                title = self.title_entry.get().strip()
+            else:
+                title = self.notepad_title.get()
+            
+            if messagebox.askyesno("确认关闭", f"确定要关闭便签：{title}吗？\n关闭后内容不会保存"):
+                # 确认关闭，销毁便签窗口
+                self.window.destroy()
+                # 从主应用的便签列表中移除
+                if self in self.parent.notepads:
+                    self.parent.notepads.remove(self)
+
+        def on_drag_start(self, event):
+            """开始拖动窗口"""
+            self.drag_data = {"x": event.x_root - self.window.winfo_x(),
+                            "y": event.y_root - self.window.winfo_y()}
+
+        def on_drag_motion(self, event):
+            """拖动窗口"""
+            x = event.x_root - self.drag_data["x"]
+            y = event.y_root - self.drag_data["y"]
+            self.window.geometry(f"+{x}+{y}")
+
+        def on_notepad_click(self, event):
+            """处理便签点击事件，将标签变为输入框"""
+            # 如果已有输入框，先销毁
+            if hasattr(self, 'notepad_entry') and self.notepad_entry:
+                self.notepad_entry.destroy()
+                self.notepad_entry = None
+            
+            # 获取当前便签内容
+            current_text = self.notepad_text.get()
+            if current_text == "点击输入文本":
+                current_text = ""
+            
+            # 隐藏Canvas（包含Label）
+            self.notepad_canvas.grid_remove()
+            
+            # 创建多行输入框
+            self.notepad_entry = tk.Text(self.content_frame, font=('Microsoft YaHei UI', self.font_size), 
+                                        bg='#fff599', wrap=tk.WORD, bd=0, 
+                                        height=5, yscrollcommand=self.scrollbar.set)
+            self.notepad_entry.grid(row=0, column=0, sticky="nsew", padx=12, pady=12)
+            
+            # 设置滚动条绑定到Text
+            self.scrollbar.config(command=self.notepad_entry.yview)
+            
+            # 设置输入框内容
+            self.notepad_entry.insert(tk.END, current_text)
+            self.notepad_entry.see(tk.END)  # 滚动到文本末尾
+            
+            # 绑定事件
+            self.notepad_entry.bind("<FocusOut>", lambda e: self.on_notepad_save(e))  # 失去焦点保存
+            self.notepad_entry.bind("<KeyRelease>", lambda e: self.on_notepad_text_changed(e))  # 文本变化时保存
+            # 防止点击输入框时触发父容器的点击事件
+            self.notepad_entry.bind("<Button-1>", lambda e: "break")
+            
+            # 使用after方法延迟获取焦点，确保输入框已完全创建
+            self.window.after(50, lambda: self.notepad_entry.focus_set())
+
+        def on_notepad_text_changed(self, event):
+            """处理便签文本变化事件，实时保存"""
+            self.save_notepad_content()
+
+        def on_notepad_save(self, event):
+            """保存便签内容并切换回标签"""
+            self.save_notepad_content()
+            
+            # 彻底销毁输入框实例
+            self.notepad_entry.destroy()
+            self.notepad_entry = None
+            
+            # 显示Canvas（包含Label）
+            self.notepad_canvas.grid(row=0, column=0, sticky="nsew")
+            
+            # 设置滚动条绑定到Canvas
+            self.scrollbar.config(command=self.notepad_canvas.yview)
+            
+            # 更新Canvas滚动区域
+            self.update_canvas_scrollregion()
+
+        def save_notepad_content(self):
+            """保存便签内容"""
+            # 获取输入框内容
+            if hasattr(self, 'notepad_entry') and self.notepad_entry:
+                content = self.notepad_entry.get("1.0", tk.END).strip()
+                
+                # 如果内容为空，显示默认提示文字
+                if not content:
+                    content = "点击添加文本"
+                
+                # 更新标签内容
+                self.notepad_text.set(content)
 
     def show_context_menu(self, event):
         """显示右键菜单"""
