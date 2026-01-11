@@ -2108,16 +2108,6 @@ class CountdownApp:
             icon_path = './logo.ico'
         if os.path.exists(icon_path):
             ai_window.iconbitmap(icon_path)
-        
-        # 创建ttk样式
-        # style = ttk.Style(ai_window)
-        # style.configure("Input.TFrame")
-        # style.configure("Title.TLabel", foreground="black", font=("Microsoft YaHei", 14, "bold"))
-        # style.configure("Label.TLabel", foreground="black", font=("Microsoft YaHei", 10))
-        # style.configure("Content.TFrame")
-        # style.configure("Generate.TButton", foreground="black", font=("Microsoft YaHei", 11))
-        # style.configure("Save.TButton", foreground="black", font=("Microsoft YaHei", 11))
-        # style.configure("Exit.TButton", foreground="black", font=("Microsoft YaHei", 11))
 
         # 创建主画布
         main_canvas = tk.Canvas(ai_window, highlightthickness=0)
